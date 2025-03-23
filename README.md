@@ -5,6 +5,8 @@
 
 This project automates the creation and sending of newsletters with AI. It uses n8n for workflow automation, integrates Google APIs with OAuth2 for access, and leverages AI to automate content creation.
 
+<img width="1704" alt="Automation Workflow" src="https://github.com/user-attachments/assets/203ff15d-957f-4c17-90e5-50513a70c52c" />
+
 
 ## Prerequisites
 

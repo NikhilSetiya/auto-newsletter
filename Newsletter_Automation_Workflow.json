@@ -1,0 +1,485 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        580
+      ],
+      "id": "1c8ba0ef-feca-43ce-b59e-f2ea9a4f4f7a",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3220283-68d2-4f90-b273-27cb265c9a92",
+              "name": "Topic",
+              "value": "AI Weekly Updates",
+              "type": "string"
+            },
+            {
+              "id": "bff1b646-8315-4deb-beef-31531bc00780",
+              "name": "Tone",
+              "value": "Professional, consulting",
+              "type": "string"
+            },
+            {
+              "id": "3094698d-9ea2-450a-9267-727a8d6b2788",
+              "name": "Target Audience",
+              "value": "AI Enthusiasts",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        100,
+        580
+      ],
+      "id": "451531a6-0708-4f9e-87f5-4a38865c1d78",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Newsletter Topic: {{ $json.Topic }}\nNewsletter Tone: {{ $json.Tone }}\nNewsletter Target Audience: {{ $json['Target Audience'] }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are an AI agent responsible for planning the sections of a newsletter by creating and engaging table of contents tailored to the newsletter's topic, tone, and target audience.\n\n#Context\nThe newsletter will vary in topic, tone, and target audience depending on the request\n\nYour role is to use the \"SerpApi\" tool to search for relevant topics and craft a high-level, engaging table of contents.\n\nThe table of contents should resonate with the target audience and encourage them to read the full newsletter.\n\n#Instructions\nAnalyse the incoming information, including the newsletter topic, tone, and target audience details.\n\nUse the \"tavity\" tool to research relevant and trending subtopics related to the main newsletter topic.\n\nBased on your findings, create a table of contents with high-level, engaging topics tailored to the target audience.\n\nEnsure the topics align with the newsletter's tone and are structured to maintain the reader's interest.\n\nInclude brief descriptions for each section if requested.\n\n#Tools\nSerpApi tool for internet research\nPredefined audience profiles (if provided)\n\n#Examples\n\nInput:\nTopic: \"Sustainable Living\"\nTone: Informative yet approachable\nTarget Audience: Young adults interested in eco-friendly lifestyles\n\n\n#Output:\nTable of Contents:\n\"What is Sustainable Living? A Beginner's Guide\"\n\"Top 10 Small Changes for a Big Impact\"\n\"The Science Behind Sustainability: Why It Matters\"\n\"Spotlight on Innovation: Green Tech of 2025\"\n\"Inspiration Corner: Stories of Everyday Eco-warriors\"\n\n\nInput:\nTopic: \"Remote Work Tips\"\nTone: Professional yet motivational\nTarget Audience: Corporate professionals transitioning to remote work\n\nOutput:\nTable of Contents:\n\n\"Remote Work Revolution: Adapting to the New Norm\"\n\"Home Office Hacks for maximum Productivity\"\n\"Balancing Act: Work-Life Harmony Tips\"\n\"Top Collaboration Tools Every Remote Team Needs\"\n\"Success Stories: How Remote work Changes Lives\"\n\n#SOP (Standard Operating Procedure)\nReview the provided details about the newsletter's topic, tone, and target audience.\nUse \"SerpApi\" tool to search for trending, relevant, and engaging subtopics.\nBrainstorm 4-6 high-level topics that fit within the theme of the newsletter and appeal to the target audience."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        280,
+        580
+      ],
+      "id": "d9c21624-bef4-4983-b5a7-0f8bbec93368",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        280,
+        920
+      ],
+      "id": "3d6aa1c6-6814-4a49-9e0d-be8787c88004",
+      "name": "Groq Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        500,
+        920
+      ],
+      "id": "35752dfe-15b3-4b36-96fd-5b48feaa5977",
+      "name": "SerpAPI"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Your job is to split out the table of contents into an individual item for each section, output each section seperately in a field called \"NewsletterSections\". When doing so, keep in mind that the newsletter target audience is {{  $('Edit Fields').item.json['Target Audience'] }} and the tone of the newsletter should be {{ $('Edit Fields').item.json.Tone }}\n\nHere is the table of contents: {{  $json.output }}",
+              "role": "=system"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        580,
+        580
+      ],
+      "id": "301e7bd3-3db8-4fa1-ac6d-74125043b34d",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "message.content.NewsletterSections",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        860,
+        580
+      ],
+      "id": "072678bd-863e-4bd8-a64f-696117ee153e",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Section Title: {{  $json.title }}\nSection Description: {{ $json.description }}\nNewsletter Target Audience: {{ $('Edit Fields').item.json['Target Audience'] }}",
+        "options": {
+          "systemMessage": "=#Overview \nYou are an AI agent, responsible for delivering only the final content for a newsletter section. Your role is to produce concise, well-researched, and audience tailored content based solely on the provided inputs, with no pre-facing statements or explanations.\n\n#Context\nAll necessary, detail details, including the section title, description, target audience, and tone, will be provided.\n\nThe goal is to create engaging content that aligns with the audience’s expectation and the newsletter’s objectives.\n\nContent must be supported by research, with sources clearly cited, using hyperlinks.\n\n#Instructions\nWrite the final content without including any introductory or concluding remarks about the writing process.\n\nConduct research using the Tavily tool to ensure credibility and relevance.\nUse the provided inputs to craft a focused section tailored to the target audience.\n\nInclude citations seamlessly within the content using hyperlink to the original sources.\n\n#Tools\nSerpApi (for research and citation)\n\n#Citation guidelines\nUse the SerpApi tool to gather information and site sources.\n\nFor each major claim or piece or information, include a hyperlink in-line citation.\n\nFormat citations as HTML links with descriptive text:\n<a href=“[URL]”>[Source: Publication Name]</a>\nWhen directly quoting from a source, use quotation marks and include the citation.\n\n#Examples\nInput:\nSection Title: “the Psychology of Happy Patients”\nDescription: Discuss strategies, dental offices, can use to improve patient experiences and satisfaction, such as personalized care and stress-reducing techniques.\nTarget Audience: Dentists and dental practice managers.\nTone: Informative yet approachable.\n\nOutput:\n“Creating a positive patient experience starts with understanding the key drivers of satisfaction in dental care. Personalized care, such as addressing individual patient concerns and tailoring treatments, can significantly boost trust and comfort Source. Stress-reducing techniques, like offering noise-canceling headphones or aromatherapy in waiting rooms, have also been shown to alleviate anxiety and improve overall impression of care Source. By focusing on these elements, dental practices can foster happier, more loyal patients.”\n\n#SOP (Standard Operating Procedure)\nInput analysis: Understand the section’s title, description, target audience, and tone.\nResearch: Use the API tool to gather relevant, credible information.\nContent Writing: Craft a section based on the provided inputs, ensuring it is directly usable in the newsletter.\nReview and Deliver: Proofread the content to ensure clarity, accuracy, and alignment with the target audience."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1000,
+        500
+      ],
+      "id": "861f3970-8204-4522-b4db-ce7b51982f28",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        560
+      ],
+      "id": "fead6ecb-50be-4346-828f-f52d57921ef5",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "title"
+            },
+            {
+              "fieldToAggregate": "output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        560
+      ],
+      "id": "d5cde8b2-c8d9-4c53-a285-5666e882447c",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=List of titles: {{ $json.title }}\nList of article content: {{ $json.output }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert editor specializing in creating and refining content to output a high-quality, formatted article. You are given a list of titles and outputs, and you will use these to create a newsletter tailored towards the defined target audience. Create a section in the article for each title, with a hyperlinked source in each section based on the content.\n\n# Objective\nCreate content for each title using the provided context\nEach section should contain in line citations *Don't leave any out*\nImprove the flow of the newsletter and format it for readability\n\n# Citation Management\nPreserve all in-line citations\nStandardize citation format\nEnsure citations don't disrupt the flow of reading\n\n# Source Section\nCreate ONE “Sources” section at the end of the newsletter\nFormat each source entry consistently:\n\t`<li><a href=“[URL]”>[Publication Name] - [Article Title]</a></li>`\nInclude complete URL for each source\nOrganizing all sources alphabetically\nVerify all links are functional\n\n# Output Format\nThe newsletter should be structured as HTML that will be sent through email:\nDo not output a title or an introduction, the output should start with the first article heading\nMain content with hyperlink citations in each section\nHeaders for each section of the article\nSources section at the end with all the links\n\n##  Important ##\nOutput 1000 words, maximum or else the automation breaks!\n\n today's date is {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1620,
+        560
+      ],
+      "id": "3109360b-1823-4e18-aa05-4256ce99e95c",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Create the title for the incoming newsletter. The tone of the newsletter is {{ $('Edit Fields').item.json.Tone }} and the target audience is {{ $('Edit Fields').item.json['Target Audience'] }}.\n\nHere is the newsletter:\n{{ $json.output }}\n\n# Output Format\nOutput the title in plain text, no quotation marks, and capitalize the first letter of each word.\nExample: Is AI a Helping Hand or a Hidden Danger?",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1980,
+        560
+      ],
+      "id": "e5bf0a3f-6279-41b7-8c83-e24002ad6c37",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "FCo45fwHie2X9aBE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "={{ $('AI Agent2').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        2340,
+        560
+      ],
+      "id": "c47b104d-161a-4b67-9dba-2c186c778ecd",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "folderId": "17Rp4ugYg26azWb8rcFNbKHoMCD0l50Ht",
+        "title": "=Newsletter_{{ $now }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        560
+      ],
+      "id": "f5151fc4-d39f-45a4-8d32-6623188d40f3",
+      "name": "Google Docs"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('OpenAI1').item.json.message.content }}\n{{ $('Markdown').item.json.data }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2780,
+        560
+      ],
+      "id": "fce24056-af38-420a-82c4-b9627b04744f",
+      "name": "Google Docs1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "vuyzcaHPXwPcTrDI",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Google Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs": {
+      "main": [
+        [
+          {
+            "node": "Google Docs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "93f52d63-b2dd-43f7-bcfa-677c7bd1f549",
+  "meta": {
+    "instanceId": "9a2ad9ff02dabb7ecb96082dd4a32e7ac976ce2c70c585cafee63dd93d69dc7c"
+  },
+  "id": "yQJXm6Buh3WDqtf5",
+  "tags": []
+}
